@@ -1,0 +1,1184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: https: http:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>Local HTML Encryptor — Customizable v2.1</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #13253a;
+      --muted: #607086;
+      --line: #dbe4ec;
+      --paper: #ffffff;
+      --wash: #f4f8fa;
+      --teal: #087f7a;
+      --teal-dark: #07645f;
+      --teal-soft: #e7f5f3;
+      --amber: #9a6500;
+      --danger: #b42318;
+      --success: #176b49;
+      --shadow: 0 18px 52px rgba(24, 52, 73, .11);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { min-height: 100%; background: var(--wash); }
+
+    body {
+      min-height: 100vh;
+      min-height: 100dvh;
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 0%, rgba(8, 127, 122, .10), transparent 28rem),
+        linear-gradient(180deg, #fbfdfd 0%, var(--wash) 100%);
+    }
+
+    button, input { font: inherit; }
+
+    button, label, input[type="checkbox"] { touch-action: manipulation; }
+
+    .shell {
+      width: min(100% - 32px, 760px);
+      margin: 0 auto;
+      padding: max(32px, env(safe-area-inset-top)) 0 max(36px, env(safe-area-inset-bottom));
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 44px;
+      height: 44px;
+      flex: 0 0 auto;
+      place-items: center;
+      border-radius: 14px;
+      color: #fff;
+      background: linear-gradient(145deg, #0c9992, #07645f);
+      box-shadow: 0 10px 22px rgba(8, 127, 122, .22);
+    }
+
+    .brand-mark svg { width: 23px; height: 23px; }
+    .brand strong { display: block; font-size: 1rem; }
+    .brand span { display: block; margin-top: 2px; color: var(--muted); font-size: .82rem; }
+
+    .card {
+      overflow: hidden;
+      border: 1px solid rgba(205, 218, 229, .92);
+      border-radius: 24px;
+      background: rgba(255, 255, 255, .96);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: clamp(24px, 5vw, 42px);
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(135deg, rgba(231, 245, 243, .82), #fff 68%);
+    }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: var(--teal-dark);
+      font-size: .76rem;
+      font-weight: 800;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 610px;
+      margin: 0;
+      font-size: clamp(1.75rem, 5vw, 2.75rem);
+      line-height: 1.08;
+      letter-spacing: -.035em;
+    }
+
+    .lead {
+      max-width: 590px;
+      margin: 14px 0 0;
+      color: var(--muted);
+      font-size: clamp(.98rem, 2.4vw, 1.08rem);
+      line-height: 1.65;
+    }
+
+    .privacy-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .privacy-item {
+      min-width: 0;
+      padding: 15px 16px;
+      background: #fbfdfd;
+      text-align: center;
+      color: var(--muted);
+      font-size: .78rem;
+      line-height: 1.35;
+    }
+
+    .privacy-item strong { display: block; margin-bottom: 2px; color: var(--ink); font-size: .84rem; }
+
+    form { padding: clamp(22px, 5vw, 38px); }
+
+    .section-title { margin: 0 0 7px; font-size: 1.02rem; }
+    .section-help { margin: 0 0 16px; color: var(--muted); font-size: .88rem; line-height: 1.55; }
+
+    .drop-zone {
+      position: relative;
+      display: grid;
+      min-height: 132px;
+      place-items: center;
+      padding: 20px;
+      border: 1.5px dashed #9db7c5;
+      border-radius: 17px;
+      background: #f8fbfc;
+      text-align: center;
+      transition: border-color .16s ease, background .16s ease, transform .16s ease;
+    }
+
+    .drop-zone:hover, .drop-zone.is-over, .drop-zone:focus-within {
+      border-color: var(--teal);
+      background: var(--teal-soft);
+    }
+
+    .drop-zone.is-over { transform: scale(1.005); }
+
+    .drop-zone input {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+      opacity: 0;
+    }
+
+    .drop-icon {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      margin: 0 auto 9px;
+      place-items: center;
+      border-radius: 13px;
+      color: var(--teal-dark);
+      background: var(--teal-soft);
+    }
+
+    .drop-zone strong { display: block; font-size: .94rem; }
+    .drop-zone span { display: block; margin-top: 5px; color: var(--muted); font-size: .82rem; }
+
+    .file-summary {
+      display: none;
+      align-items: center;
+      gap: 12px;
+      margin-top: 12px;
+      padding: 13px 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fbfdfd;
+    }
+
+    .file-summary.is-visible { display: flex; }
+    .file-badge { color: var(--teal); font-weight: 800; }
+    .file-copy { min-width: 0; }
+    .file-copy strong, .file-copy span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .file-copy strong { font-size: .88rem; }
+    .file-copy span { margin-top: 3px; color: var(--muted); font-size: .77rem; }
+
+    .rule { height: 1px; margin: 28px 0; background: var(--line); }
+
+    .fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .field label { display: block; margin-bottom: 7px; font-size: .84rem; font-weight: 750; }
+
+    .field input {
+      width: 100%;
+      min-height: 48px;
+      padding: 10px 13px;
+      border: 1px solid #bdcbd7;
+      border-radius: 12px;
+      color: var(--ink);
+      background: #fff;
+      outline: none;
+      transition: border-color .15s ease, box-shadow .15s ease;
+    }
+
+    .field input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(8, 127, 122, .13); }
+
+    .password-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 9px 14px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: .78rem;
+    }
+
+    .checkbox { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; color: var(--ink); }
+    .checkbox input { width: 18px; height: 18px; accent-color: var(--teal); }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 11px; margin-top: 24px; }
+
+    .button {
+      display: inline-flex;
+      min-height: 48px;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 18px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 800;
+      text-decoration: none;
+      transition: background .15s ease, transform .15s ease, border-color .15s ease;
+    }
+
+    .button:hover { transform: translateY(-1px); }
+    .button:disabled { cursor: not-allowed; opacity: .58; transform: none; }
+    .button-primary { min-width: 190px; color: #fff; background: var(--teal); }
+    .button-primary:hover:not(:disabled) { background: var(--teal-dark); }
+    .button-secondary { color: var(--ink); border-color: var(--line); background: #fff; }
+
+    .status {
+      display: none;
+      margin-top: 18px;
+      padding: 14px 15px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      color: var(--muted);
+      background: #f8fbfc;
+      font-size: .85rem;
+      line-height: 1.5;
+    }
+
+    .status.is-visible { display: block; }
+    .status[data-tone="working"] { color: #5b4809; border-color: #eedaa4; background: #fff9e8; }
+    .status[data-tone="success"] { color: var(--success); border-color: #b9decf; background: #eef9f4; }
+    .status[data-tone="error"] { color: var(--danger); border-color: #f2c3bd; background: #fff3f2; }
+
+    .progress {
+      display: none;
+      height: 7px;
+      margin-top: 11px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(19, 37, 58, .10);
+    }
+
+    .progress.is-visible { display: block; }
+    .progress span { display: block; width: 34%; height: 100%; border-radius: inherit; background: var(--teal); animation: move 1.1s ease-in-out infinite alternate; }
+    @keyframes move { from { transform: translateX(-15%); } to { transform: translateX(195%); } }
+
+    .download-panel {
+      display: none;
+      margin-top: 18px;
+      padding: 18px;
+      border: 1px solid #b9decf;
+      border-radius: 16px;
+      background: #eef9f4;
+    }
+
+    .download-panel.is-visible { display: block; }
+    .download-panel strong { display: block; color: var(--success); }
+    .download-panel p { margin: 5px 0 14px; color: #3e6857; font-size: .82rem; line-height: 1.5; }
+    .download-panel .button { color: #fff; background: var(--success); }
+
+
+    .customize-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .icon-picker-title { margin: 0 0 9px; font-size: .84rem; font-weight: 750; }
+    .icon-options { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 9px; }
+    .icon-choice { cursor: pointer; }
+    .icon-choice input { position: absolute; opacity: 0; pointer-events: none; }
+    .icon-tile {
+      display: grid;
+      min-height: 58px;
+      place-items: center;
+      border: 1px solid #bdcbd7;
+      border-radius: 13px;
+      color: var(--teal-dark);
+      background: #fff;
+      transition: border-color .15s ease, box-shadow .15s ease, background .15s ease, transform .15s ease;
+    }
+    .icon-tile svg { width: 25px; height: 25px; }
+    .icon-tile .diamond { font-size: 1.48rem; line-height: 1; }
+    .icon-tile .custom-word { font-size: .68rem; font-weight: 850; letter-spacing: .03em; }
+    .icon-choice:hover .icon-tile { transform: translateY(-1px); border-color: #8dadbb; }
+    .icon-choice input:focus-visible + .icon-tile { box-shadow: 0 0 0 3px rgba(8, 127, 122, .13); }
+    .icon-choice input:checked + .icon-tile { border-color: var(--teal); background: var(--teal-soft); box-shadow: inset 0 0 0 1px var(--teal); }
+    .icon-caption { display: block; margin-top: 5px; color: var(--muted); font-size: .68rem; text-align: center; }
+
+    .logo-url-wrap { margin-top: 14px; }
+    .logo-url-wrap input { width: 100%; min-height: 46px; padding: 9px 12px; border: 1px solid #bdcbd7; border-radius: 12px; color: var(--ink); background: #fff; outline: none; }
+    .logo-url-wrap input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(8, 127, 122, .13); }
+    .micro-help { margin: 7px 0 0; color: var(--muted); font-size: .74rem; line-height: 1.5; }
+    .compact-option { margin-top: 15px; padding: 13px 14px; border: 1px solid var(--line); border-radius: 13px; background: #fbfdfd; }
+    .compact-option .checkbox { font-weight: 750; font-size: .83rem; }
+    .compact-option p { margin: 5px 0 0 26px; color: var(--muted); font-size: .74rem; line-height: 1.45; }
+
+    .preview-block {
+      margin-top: 20px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      background: linear-gradient(180deg, #f8fbfc, #f3f7f9);
+    }
+
+    .preview-toolbar {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px 16px;
+      margin-bottom: 14px;
+    }
+    .preview-toolbar strong { font-size: .86rem; }
+    .preview-toolbar span { color: var(--muted); font-size: .72rem; }
+
+    .unlock-preview-shell { width: min(100%, 460px); margin: 0 auto; }
+    .unlock-preview-brand {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 13px;
+      color: var(--ink);
+      font-size: .88rem;
+      font-weight: 800;
+      text-align: left;
+      overflow-wrap: anywhere;
+    }
+    .unlock-preview-mark {
+      display: grid;
+      width: 38px;
+      height: 38px;
+      flex: 0 0 38px;
+      place-items: center;
+      overflow: hidden;
+      border-radius: 12px;
+      color: #fff;
+      background: linear-gradient(145deg, #0c9992, #07645f);
+      box-shadow: 0 9px 19px rgba(8, 127, 122, .20);
+    }
+    .unlock-preview-mark svg { width: 21px; height: 21px; }
+    .unlock-preview-mark .diamond-mark { font-size: 1.2rem; line-height: 1; }
+    .unlock-preview-mark.custom { position: relative; padding: 3px; color: var(--teal-dark); border: 1px solid var(--line); background: #fff; }
+    .unlock-preview-mark.custom img { display: block; width: 100%; height: 100%; object-fit: contain; border-radius: 8px; }
+    .unlock-preview-mark.custom .logo-fallback { display: none; width: 100%; height: 100%; place-items: center; font-size: 1rem; }
+
+    .unlock-preview-card {
+      overflow: hidden;
+      border: 1px solid rgba(205, 218, 229, .95);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, .98);
+      box-shadow: 0 13px 36px rgba(24, 52, 73, .12);
+    }
+    .unlock-preview-head { padding: 25px 24px 20px; border-bottom: 1px solid var(--line); background: linear-gradient(135deg, rgba(231,245,243,.85), #fff 75%); }
+    .unlock-preview-eyebrow { margin: 0 0 6px; color: var(--teal-dark); font-size: .66rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    .unlock-preview-title { margin: 0; font-size: clamp(1.25rem, 4.8vw, 1.7rem); line-height: 1.13; letter-spacing: -.025em; }
+    .unlock-preview-intro { margin: 9px 0 0; color: var(--muted); font-size: .8rem; line-height: 1.5; }
+    .unlock-preview-body { padding: 21px 24px 24px; }
+    .unlock-preview-card.compact .unlock-preview-head { padding-bottom: 18px; }
+    .unlock-preview-card.compact .unlock-preview-body { padding-top: 18px; }
+    .unlock-preview-file { margin: 0 0 17px; padding: 10px 11px; border: 1px solid var(--line); border-radius: 10px; background: #f8fbfc; color: var(--muted); font-size: .72rem; overflow-wrap: anywhere; }
+    .unlock-preview-file strong { display: block; margin-bottom: 2px; color: var(--ink); font-size: .76rem; }
+    .unlock-preview-label { display: block; margin-bottom: 6px; font-size: .76rem; font-weight: 750; }
+    .unlock-preview-input { width: 100%; min-height: 44px; padding: 9px 12px; border: 1px solid #bdcbd7; border-radius: 11px; color: #8a97a7; background: #fff; font-size: .82rem; }
+    .unlock-preview-row { display: flex; justify-content: space-between; gap: 12px; margin-top: 9px; color: var(--muted); font-size: .68rem; }
+    .unlock-preview-show { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); }
+    .unlock-preview-show input { width: 15px; height: 15px; accent-color: var(--teal); }
+    .unlock-preview-button { width: 100%; min-height: 44px; margin-top: 17px; border: 0; border-radius: 11px; color: #fff; background: var(--teal); font-size: .82rem; font-weight: 800; }
+    .unlock-preview-privacy { margin: 14px 0 0; padding-top: 13px; border-top: 1px solid var(--line); color: var(--muted); font-size: .66rem; line-height: 1.45; text-align: center; }
+
+    .notes {
+      margin: 18px 0 0;
+      padding: 0 2px;
+      color: var(--muted);
+      font-size: .77rem;
+      line-height: 1.55;
+    }
+
+    .notes strong { color: var(--ink); }
+
+    footer { padding: 19px 4px 0; color: var(--muted); text-align: center; font-size: .72rem; line-height: 1.55; }
+
+    @media (max-width: 620px) {
+      .shell { width: min(100% - 20px, 760px); padding-top: max(18px, env(safe-area-inset-top)); }
+      .brand { padding: 0 4px; }
+      .card { border-radius: 19px; }
+      .hero { padding: 24px 20px; }
+      .privacy-strip { grid-template-columns: 1fr; }
+      .privacy-item { display: flex; align-items: center; justify-content: center; gap: 5px; padding: 10px 13px; }
+      .privacy-item strong { display: inline; margin: 0; }
+      form { padding: 21px 18px 24px; }
+      .fields, .customize-grid { grid-template-columns: 1fr; gap: 13px; }
+      .icon-options { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .preview-block { padding: 13px; }
+      .preview-toolbar { align-items: flex-start; flex-direction: column; gap: 3px; }
+      .unlock-preview-head { padding: 22px 18px 18px; }
+      .unlock-preview-body { padding: 18px; }
+      .unlock-preview-row { align-items: flex-start; flex-direction: column-reverse; }
+      .actions { flex-direction: column; }
+      .button { width: 100%; }
+      .password-row { align-items: flex-start; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <div class="brand" aria-label="Local HTML Encryptor">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10" width="14" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path><path d="M12 14v2"></path></svg>
+      </div>
+      <div><strong>Local HTML Encryptor</strong><span>Private, browser-only utility</span></div>
+    </div>
+
+    <section class="card" aria-labelledby="page-title">
+      <header class="hero">
+        <p class="eyebrow">Encrypt locally</p>
+        <h1 id="page-title">Protect a standalone HTML file with a password</h1>
+        <p class="lead">Choose a standalone HTML file and a password. Encryption and verification happen entirely in this browser; neither the file nor the password is uploaded. If you choose an external logo URL, only that image may be requested for preview/display.</p>
+      </header>
+
+      <div class="privacy-strip" aria-label="Privacy and security summary">
+        <div class="privacy-item"><strong>Local</strong> No file uploads</div>
+        <div class="privacy-item"><strong>Encrypted</strong> AES-256-GCM</div>
+        <div class="privacy-item"><strong>Verified</strong> Local self-test</div>
+      </div>
+
+      <form id="encrypt-form" novalidate>
+        <section aria-labelledby="file-heading">
+          <h2 class="section-title" id="file-heading">1. Select the website</h2>
+          <p class="section-help">Use a single-file <strong>.html</strong> or <strong>.htm</strong> website. Drag it here or tap to browse.</p>
+          <label class="drop-zone" id="drop-zone">
+            <input id="file-input" type="file" accept=".html,.htm,text/html" required>
+            <span>
+              <span class="drop-icon" aria-hidden="true">↥</span>
+              <strong>Choose or drop an HTML file</strong>
+              <span>The original file will not be changed</span>
+            </span>
+          </label>
+          <div class="file-summary" id="file-summary" aria-live="polite">
+            <span class="file-badge" aria-hidden="true">HTML</span>
+            <span class="file-copy"><strong id="file-name"></strong><span id="file-meta"></span></span>
+          </div>
+        </section>
+
+        <div class="rule"></div>
+
+        <section aria-labelledby="password-heading">
+          <h2 class="section-title" id="password-heading">2. Choose the password</h2>
+          <p class="section-help">Use at least 12 characters. A long, memorable passphrase is usually easier to share safely than a short complex password.</p>
+          <div class="fields">
+            <div class="field">
+              <label for="password">Password</label>
+              <input id="password" type="password" minlength="12" autocomplete="new-password" autocapitalize="none" spellcheck="false" required>
+            </div>
+            <div class="field">
+              <label for="confirm-password">Confirm password</label>
+              <input id="confirm-password" type="password" minlength="12" autocomplete="new-password" autocapitalize="none" spellcheck="false" required>
+            </div>
+          </div>
+          <div class="password-row">
+            <label class="checkbox"><input id="show-password" type="checkbox"> Show password</label>
+            <span>No password recovery is possible.</span>
+          </div>
+        </section>
+
+        <div class="rule"></div>
+
+        <section aria-labelledby="branding-heading">
+          <h2 class="section-title" id="branding-heading">3. Customize the locked page</h2>
+          <p class="section-help">These settings change the password screen shown before the protected website opens. They do not alter the website inside the encrypted payload.</p>
+
+          <div class="customize-grid">
+            <div class="field">
+              <label for="brand-name">Name beside the icon / logo</label>
+              <input id="brand-name" type="text" value="Local HTML Encryptor" maxlength="80" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="locked-title">Encrypted page heading</label>
+              <input id="locked-title" type="text" value="Encrypted HTML file" maxlength="100" autocomplete="off">
+            </div>
+          </div>
+
+          <p class="icon-picker-title">Header icon / logo</p>
+          <div class="icon-options" role="radiogroup" aria-label="Header icon selection">
+            <label class="icon-choice">
+              <input type="radio" name="locked-icon" value="lock" checked>
+              <span class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path><path d="M12 14v2"></path></svg></span>
+              <span class="icon-caption">Padlock</span>
+            </label>
+            <label class="icon-choice">
+              <input type="radio" name="locked-icon" value="lock-round">
+              <span class="icon-tile"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17 9h-1V7a4 4 0 0 0-8 0v2H7a3 3 0 0 0-3 3v6a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-6a3 3 0 0 0-3-3Zm-7-2a2 2 0 1 1 4 0v2h-4V7Zm3 9.73V18h-2v-1.27a2 2 0 1 1 2 0Z"></path></svg></span>
+              <span class="icon-caption">Solid lock</span>
+            </label>
+            <label class="icon-choice">
+              <input type="radio" name="locked-icon" value="diamond">
+              <span class="icon-tile"><span class="diamond" aria-hidden="true">◆</span></span>
+              <span class="icon-caption">Diamond</span>
+            </label>
+            <label class="icon-choice">
+              <input type="radio" name="locked-icon" value="shield">
+              <span class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"></path><path d="M9.5 12.5 11 14l3.5-4"></path></svg></span>
+              <span class="icon-caption">Shield</span>
+            </label>
+            <label class="icon-choice">
+              <input type="radio" name="locked-icon" value="key">
+              <span class="icon-tile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="15" r="4"></circle><path d="m11 12 9-9"></path><path d="m17 6 2 2"></path><path d="m15 8 2 2"></path></svg></span>
+              <span class="icon-caption">Key</span>
+            </label>
+            <label class="icon-choice">
+              <input type="radio" name="locked-icon" value="custom">
+              <span class="icon-tile"><span class="custom-word" aria-hidden="true">YOUR<br>LOGO</span></span>
+              <span class="icon-caption">Custom</span>
+            </label>
+          </div>
+
+          <div class="logo-url-wrap field">
+            <label for="custom-logo-url">Custom logo URL <span style="font-weight:500;color:var(--muted)">(used only when Custom is selected)</span></label>
+            <input id="custom-logo-url" type="url" inputmode="url" placeholder="https://example.com/logo.png" maxlength="4096" autocomplete="off" spellcheck="false">
+            <p class="micro-help">Recommended: a square transparent PNG, WebP, or SVG around <strong>96×96 or 128×128 px</strong>. It is displayed at about 38×38 px. A normal web URL needs internet for the live preview and when the locked page is opened; a base64 <code>data:image/...</code> URL stays fully self-contained.</p>
+          </div>
+
+          <div class="compact-option">
+            <label class="checkbox"><input id="show-file-section" type="checkbox" checked> Show the <strong>Encrypted file</strong> section</label>
+            <p>Turn this off for a shorter, more compact password box. The original filename remains inside the encrypted metadata for verification, but is not shown on the lock screen.</p>
+          </div>
+
+
+          <div class="preview-block" id="preview-block" aria-labelledby="preview-heading">
+            <div class="preview-toolbar">
+              <strong id="preview-heading">Live preview of the password screen</strong>
+              <span>Updates instantly — no encryption required</span>
+            </div>
+            <div class="unlock-preview-shell">
+              <div class="unlock-preview-brand">
+                <span class="unlock-preview-mark" id="preview-mark" aria-hidden="true"></span>
+                <span id="preview-brand-name">Local HTML Encryptor</span>
+              </div>
+              <section class="unlock-preview-card" id="preview-card" aria-label="Customized password screen preview">
+                <header class="unlock-preview-head">
+                  <p class="unlock-preview-eyebrow">Password protected</p>
+                  <h3 class="unlock-preview-title" id="preview-title">Encrypted HTML file</h3>
+                  <p class="unlock-preview-intro">Enter the password to decrypt and open this file on your device.</p>
+                </header>
+                <div class="unlock-preview-body">
+                  <p class="unlock-preview-file" id="preview-file-section"><strong>Encrypted file</strong><span id="preview-file-name">YourWebsite.html</span></p>
+                  <span class="unlock-preview-label">Password</span>
+                  <input class="unlock-preview-input" type="password" value="••••••••••••" disabled aria-label="Password field preview">
+                  <div class="unlock-preview-row"><span>No password recovery is available.</span><span class="unlock-preview-show"><input type="checkbox" disabled> Show password</span></div>
+                  <button class="unlock-preview-button" type="button" disabled>Unlock file</button>
+                  <p class="unlock-preview-privacy">Decryption happens locally in this browser. The password is not stored or transmitted.</p>
+                </div>
+              </section>
+            </div>
+          </div>
+        </section>
+
+        <div class="actions">
+          <button class="button button-primary" id="encrypt-button" type="submit">Encrypt and verify</button>
+          <button class="button button-secondary" id="reset-button" type="button">Clear</button>
+        </div>
+
+        <div class="status" id="status" role="status" aria-live="polite"></div>
+        <div class="progress" id="progress" aria-hidden="true"><span></span></div>
+
+        <section class="download-panel" id="download-panel" aria-labelledby="download-heading">
+          <strong id="download-heading">Encrypted copy verified</strong>
+          <p>The tool successfully decrypted the new payload and matched it to your original file. Save the locked copy now.</p>
+          <a class="button" id="download-link" download>Download locked HTML</a>
+        </section>
+
+        <p class="notes"><strong>Important:</strong> Keep an unencrypted backup and test the downloaded file before sharing it. If the original website uses separate local files, keep the locked copy beside them. Encryption protects the file while locked, but cannot prevent password sharing, screenshots, or copying after unlock.</p>
+      </form>
+    </section>
+
+    <footer>Runs locally using the Web Crypto API. The password is never embedded in the generated file. MIT-licensed source is contained in this HTML file.</footer>
+  </main>
+
+  <script>
+  (() => {
+    "use strict";
+
+    const ITERATIONS = 600000;
+    const SALT_BYTES = 16;
+    const IV_BYTES = 12;
+    const encoder = new TextEncoder();
+    const form = document.getElementById("encrypt-form");
+    const fileInput = document.getElementById("file-input");
+    const dropZone = document.getElementById("drop-zone");
+    const fileSummary = document.getElementById("file-summary");
+    const fileName = document.getElementById("file-name");
+    const fileMeta = document.getElementById("file-meta");
+    const passwordInput = document.getElementById("password");
+    const confirmInput = document.getElementById("confirm-password");
+    const showPassword = document.getElementById("show-password");
+    const brandNameInput = document.getElementById("brand-name");
+    const lockedTitleInput = document.getElementById("locked-title");
+    const customLogoUrlInput = document.getElementById("custom-logo-url");
+    const showFileSectionInput = document.getElementById("show-file-section");
+    const previewMark = document.getElementById("preview-mark");
+    const previewBrandName = document.getElementById("preview-brand-name");
+    const previewTitle = document.getElementById("preview-title");
+    const previewCard = document.getElementById("preview-card");
+    const previewFileSection = document.getElementById("preview-file-section");
+    const previewFileName = document.getElementById("preview-file-name");
+    const encryptButton = document.getElementById("encrypt-button");
+    const resetButton = document.getElementById("reset-button");
+    const status = document.getElementById("status");
+    const progress = document.getElementById("progress");
+    const downloadPanel = document.getElementById("download-panel");
+    const downloadLink = document.getElementById("download-link");
+    let selectedFile = null;
+    let downloadUrl = "";
+
+    function formatBytes(value) {
+      if (!Number.isFinite(value) || value < 1) return "0 bytes";
+      const units = ["bytes", "KB", "MB", "GB"];
+      const index = Math.min(Math.floor(Math.log(value) / Math.log(1024)), units.length - 1);
+      const amount = value / Math.pow(1024, index);
+      return (index === 0 ? Math.round(amount) : amount.toFixed(amount >= 10 ? 1 : 2)) + " " + units[index];
+    }
+
+    function bytesToBase64(bytes) {
+      const chunkSize = 0x8000;
+      const chunks = [];
+      for (let index = 0; index < bytes.length; index += chunkSize) {
+        chunks.push(String.fromCharCode.apply(null, bytes.subarray(index, index + chunkSize)));
+      }
+      return btoa(chunks.join(""));
+    }
+
+    function bytesToHex(bytes) {
+      let result = "";
+      for (const byte of bytes) result += byte.toString(16).padStart(2, "0");
+      return result;
+    }
+
+    async function sha256Hex(bytes) {
+      return bytesToHex(new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)));
+    }
+
+    async function deriveKey(password, salt, usages) {
+      const material = await crypto.subtle.importKey(
+        "raw",
+        encoder.encode(password),
+        "PBKDF2",
+        false,
+        ["deriveKey"]
+      );
+      return crypto.subtle.deriveKey(
+        { name: "PBKDF2", salt, iterations: ITERATIONS, hash: "SHA-256" },
+        material,
+        { name: "AES-GCM", length: 256 },
+        false,
+        usages
+      );
+    }
+
+    function safePayloadJson(payload) {
+      return JSON.stringify(payload).replace(/</g, "\\u003c");
+    }
+
+    const LOCKED_ICONS = {
+      lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"></rect><path d="M8 10V7a4 4 0 0 1 8 0v3"></path><path d="M12 14v2"></path></svg>',
+      "lock-round": '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17 9h-1V7a4 4 0 0 0-8 0v2H7a3 3 0 0 0-3 3v6a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3v-6a3 3 0 0 0-3-3Zm-7-2a2 2 0 1 1 4 0v2h-4V7Zm3 9.73V18h-2v-1.27a2 2 0 1 1 2 0Z"></path></svg>',
+      diamond: '<span class="diamond-mark" aria-hidden="true">◆</span>',
+      shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"></path><path d="M9.5 12.5 11 14l3.5-4"></path></svg>',
+      key: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="15" r="4"></circle><path d="m11 12 9-9"></path><path d="m17 6 2 2"></path><path d="m15 8 2 2"></path></svg>'
+    };
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"']/g, (character) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      })[character]);
+    }
+
+    function normalizeLogoUrl(value) {
+      const trimmed = String(value || "").trim();
+      if (!trimmed) return "";
+      if (/^data:image\/(?:png|jpe?g|webp|gif|svg\+xml);base64,/i.test(trimmed)) return trimmed;
+      try {
+        const parsed = new URL(trimmed);
+        if (parsed.protocol === "https:" || parsed.protocol === "http:") return parsed.href;
+      } catch (error) {}
+      return null;
+    }
+
+    function getSelectedIcon() {
+      const selectedIconInput = form.querySelector('input[name="locked-icon"]:checked');
+      return selectedIconInput ? selectedIconInput.value : "lock";
+    }
+
+    function updatePreview() {
+      const brandName = brandNameInput.value.trim() || "Local HTML Encryptor";
+      const lockedTitle = lockedTitleInput.value.trim() || "Encrypted HTML file";
+      const icon = getSelectedIcon();
+      const showFileSection = showFileSectionInput.checked;
+
+      previewBrandName.textContent = brandName;
+      previewTitle.textContent = lockedTitle;
+      previewFileName.textContent = selectedFile ? selectedFile.name : "YourWebsite.html";
+      previewFileSection.hidden = !showFileSection;
+      previewCard.classList.toggle("compact", !showFileSection);
+
+      previewMark.className = "unlock-preview-mark";
+      previewMark.replaceChildren();
+
+      if (icon === "custom") {
+        previewMark.classList.add("custom");
+        const img = document.createElement("img");
+        img.alt = "";
+        img.referrerPolicy = "no-referrer";
+        const fallback = document.createElement("span");
+        fallback.className = "logo-fallback";
+        fallback.setAttribute("aria-hidden", "true");
+        fallback.textContent = "🔒";
+        const normalized = normalizeLogoUrl(customLogoUrlInput.value);
+        if (normalized) {
+          img.src = normalized;
+          img.addEventListener("error", () => {
+            img.style.display = "none";
+            fallback.style.display = "grid";
+          }, { once: true });
+        } else {
+          img.style.display = "none";
+          fallback.style.display = "grid";
+        }
+        previewMark.append(img, fallback);
+      } else {
+        previewMark.innerHTML = LOCKED_ICONS[icon] || LOCKED_ICONS.lock;
+      }
+    }
+
+    function createLockedHtml(payload, branding) {
+      const payloadJson = safePayloadJson(payload);
+      const brandName = escapeHtml(branding.brandName || "Local HTML Encryptor");
+      const lockedTitle = escapeHtml(branding.lockedTitle || "Encrypted HTML file");
+      const icon = branding.icon || "lock";
+      const customLogoUrl = branding.customLogoUrl || "";
+      const showFileSection = branding.showFileSection !== false;
+      let logoMarkup;
+      let markClass = "mark";
+      if (icon === "custom" && customLogoUrl) {
+        markClass += " custom";
+        logoMarkup = '<img src="' + escapeHtml(customLogoUrl) + '" alt="" referrerpolicy="no-referrer"><span class="logo-fallback" aria-hidden="true">🔒</span>';
+      } else {
+        logoMarkup = LOCKED_ICONS[icon] || LOCKED_ICONS.lock;
+      }
+      const fileMarkup = showFileSection ? '<p class="file"><strong>Encrypted file</strong><span id="locked-file-name"></span></p>' : '';
+      const compactClass = showFileSection ? "" : " compact";
+      return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light">
+  <meta name="referrer" content="no-referrer">
+  <title>${lockedTitle} — Locked</title>
+  <style>
+    :root{color-scheme:light;--ink:#13253a;--muted:#607086;--line:#dbe4ec;--paper:#fff;--wash:#f4f8fa;--teal:#087f7a;--teal-dark:#07645f;--danger:#b42318;--shadow:0 20px 58px rgba(24,52,73,.14);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    *{box-sizing:border-box}html{min-height:100%;background:var(--wash)}body{min-height:100vh;min-height:100dvh;margin:0;color:var(--ink);background:radial-gradient(circle at 50% 0%,rgba(8,127,122,.12),transparent 31rem),linear-gradient(180deg,#fbfdfd,var(--wash));display:grid;place-items:center;padding:max(20px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}
+    button,input{font:inherit}.shell{width:min(100%,460px)}.brand{display:flex;justify-content:center;align-items:center;gap:10px;margin-bottom:18px;font-weight:800;text-align:left;overflow-wrap:anywhere}.mark{display:grid;width:38px;height:38px;flex:0 0 38px;place-items:center;border-radius:12px;color:#fff;background:linear-gradient(145deg,#0c9992,#07645f);box-shadow:0 9px 19px rgba(8,127,122,.2);overflow:hidden}.mark svg{width:21px;height:21px}.mark .diamond-mark{font-size:1.2rem;line-height:1}.mark.custom{position:relative;padding:3px;color:var(--teal-dark);border:1px solid var(--line);background:#fff}.mark.custom img{display:block;width:100%;height:100%;object-fit:contain;border-radius:8px}.mark.custom .logo-fallback{display:none;width:100%;height:100%;place-items:center;font-size:1rem}.card{overflow:hidden;border:1px solid rgba(205,218,229,.95);border-radius:22px;background:rgba(255,255,255,.97);box-shadow:var(--shadow)}.head{padding:30px 28px 23px;border-bottom:1px solid var(--line);background:linear-gradient(135deg,rgba(231,245,243,.85),#fff 75%)}.eyebrow{margin:0 0 7px;color:var(--teal-dark);font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase}h1{margin:0;font-size:clamp(1.45rem,7vw,2rem);line-height:1.12;letter-spacing:-.025em}.intro{margin:10px 0 0;color:var(--muted);font-size:.9rem;line-height:1.55}.body{padding:25px 28px 29px}.card.compact .head{padding-bottom:21px}.card.compact .body{padding-top:21px}.file{margin:0 0 20px;padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:#f8fbfc;color:var(--muted);font-size:.77rem;overflow-wrap:anywhere}.file strong{display:block;margin-bottom:2px;color:var(--ink);font-size:.82rem}label[for=password]{display:block;margin-bottom:7px;font-size:.84rem;font-weight:750}input[type=password],input[type=text]{width:100%;min-height:50px;padding:10px 13px;border:1px solid #bdcbd7;border-radius:12px;color:var(--ink);background:#fff;outline:none}input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(8,127,122,.13)}.row{display:flex;justify-content:space-between;gap:12px;margin-top:11px;color:var(--muted);font-size:.75rem}.show{display:inline-flex;align-items:center;gap:7px;cursor:pointer;color:var(--ink)}.show input{width:18px;height:18px;accent-color:var(--teal)}button{width:100%;min-height:50px;margin-top:20px;border:0;border-radius:12px;color:#fff;background:var(--teal);cursor:pointer;font-weight:800;touch-action:manipulation}button:hover{background:var(--teal-dark)}button:disabled{cursor:wait;opacity:.62}.status{min-height:20px;margin:13px 0 0;color:var(--muted);font-size:.8rem;line-height:1.45}.status.error{color:var(--danger)}.privacy{margin:17px 0 0;padding-top:15px;border-top:1px solid var(--line);color:var(--muted);font-size:.72rem;line-height:1.5;text-align:center}@media(max-width:480px){.card{border-radius:18px}.head{padding:25px 21px 20px}.body{padding:21px}.card.compact .head{padding-bottom:18px}.card.compact .body{padding-top:18px}.row{align-items:flex-start;flex-direction:column-reverse}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <div class="brand"><span class="${markClass}" aria-hidden="true">${logoMarkup}</span><span>${brandName}</span></div>
+    <section class="card${compactClass}" aria-labelledby="unlock-title">
+      <header class="head"><p class="eyebrow">Password protected</p><h1 id="unlock-title">${lockedTitle}</h1><p class="intro">Enter the password to decrypt and open this file on your device.</p></header>
+      <div class="body">
+        ${fileMarkup}
+        <form id="unlock-form">
+          <label for="password">Password</label>
+          <input id="password" type="password" autocomplete="current-password" autocapitalize="none" spellcheck="false" required autofocus>
+          <div class="row"><span>No password recovery is available.</span><label class="show"><input id="show-password" type="checkbox"> Show password</label></div>
+          <button id="unlock-button" type="submit">Unlock file</button>
+          <p class="status" id="unlock-status" role="status" aria-live="polite"></p>
+        </form>
+        <p class="privacy">Decryption happens locally in this browser. The password is not stored or transmitted.</p>
+      </div>
+    </section>
+  </main>
+  <script id="locked-payload" type="application/json">${payloadJson}<\/script>
+  <script>
+  (function () {
+    "use strict";
+    var payloadElement = document.getElementById("locked-payload");
+    var form = document.getElementById("unlock-form");
+    var passwordInput = document.getElementById("password");
+    var showPassword = document.getElementById("show-password");
+    var button = document.getElementById("unlock-button");
+    var status = document.getElementById("unlock-status");
+    var fileName = document.getElementById("locked-file-name");
+    var customLogo = document.querySelector(".mark.custom img");
+    var payload;
+
+    if (customLogo) customLogo.addEventListener("error", function () {
+      customLogo.style.display = "none";
+      var fallback = customLogo.nextElementSibling;
+      if (fallback) fallback.style.display = "grid";
+    });
+
+    function base64ToBytes(value) {
+      var binary = atob(value);
+      var bytes = new Uint8Array(binary.length);
+      for (var index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
+      return bytes;
+    }
+
+    function bytesToHex(bytes) {
+      var result = "";
+      for (var index = 0; index < bytes.length; index += 1) result += bytes[index].toString(16).padStart(2, "0");
+      return result;
+    }
+
+    async function sha256Hex(bytes) {
+      return bytesToHex(new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)));
+    }
+
+    async function deriveKey(password, salt) {
+      var material = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveKey"]);
+      return crypto.subtle.deriveKey(
+        { name: "PBKDF2", salt: salt, iterations: payload.kdf.iterations, hash: "SHA-256" },
+        material,
+        { name: "AES-GCM", length: 256 },
+        false,
+        ["decrypt"]
+      );
+    }
+
+    function collectScripts(parsed) {
+      var descriptors = [];
+      var scripts = Array.from(parsed.querySelectorAll("script"));
+      scripts.forEach(function (script, index) {
+        var marker = parsed.createElement("template");
+        marker.setAttribute("data-unlock-script", String(index));
+        descriptors.push({
+          attributes: Array.from(script.attributes).map(function (attribute) { return [attribute.name, attribute.value]; }),
+          text: script.textContent || ""
+        });
+        script.replaceWith(marker);
+      });
+      return descriptors;
+    }
+
+    async function restoreScripts(descriptors) {
+      for (var index = 0; index < descriptors.length; index += 1) {
+        var descriptor = descriptors[index];
+        var marker = document.querySelector('template[data-unlock-script="' + index + '"]');
+        if (!marker) continue;
+        var script = document.createElement("script");
+        descriptor.attributes.forEach(function (attribute) { script.setAttribute(attribute[0], attribute[1]); });
+        script.textContent = descriptor.text;
+        var waitsForLoad = script.hasAttribute("src") || script.getAttribute("type") === "module";
+        var completion = waitsForLoad ? new Promise(function (resolve) {
+          script.addEventListener("load", resolve, { once: true });
+          script.addEventListener("error", resolve, { once: true });
+        }) : Promise.resolve();
+        marker.replaceWith(script);
+        await completion;
+      }
+    }
+
+    async function activateHtml(html) {
+      var parsed = new DOMParser().parseFromString(html, "text/html");
+      var descriptors = collectScripts(parsed);
+      var imported = document.importNode(parsed.documentElement, true);
+      document.replaceChild(imported, document.documentElement);
+      await restoreScripts(descriptors);
+      document.dispatchEvent(new Event("DOMContentLoaded", { bubbles: true }));
+      window.dispatchEvent(new Event("load"));
+    }
+
+    function fail(message) {
+      status.textContent = message;
+      status.className = "status error";
+      button.disabled = false;
+      passwordInput.disabled = false;
+      passwordInput.focus();
+      passwordInput.select();
+    }
+
+    try {
+      payload = JSON.parse(payloadElement.textContent);
+      if (fileName) fileName.textContent = payload.original.name;
+    } catch (error) {
+      fail("This encrypted file is damaged or incomplete.");
+      return;
+    }
+
+    if (!window.crypto || !window.crypto.subtle) {
+      fail("Secure browser encryption is unavailable. Open this file in a current browser or from HTTPS/localhost.");
+      button.disabled = true;
+      return;
+    }
+
+    showPassword.addEventListener("change", function () {
+      passwordInput.type = showPassword.checked ? "text" : "password";
+    });
+
+    form.addEventListener("submit", async function (event) {
+      event.preventDefault();
+      if (!passwordInput.value) return;
+      button.disabled = true;
+      passwordInput.disabled = true;
+      status.className = "status";
+      status.textContent = "Deriving the key and decrypting…";
+      var salt;
+      var iv;
+      var encrypted;
+      var plain;
+      try {
+        salt = base64ToBytes(payload.kdf.salt);
+        iv = base64ToBytes(payload.cipher.iv);
+        encrypted = base64ToBytes(payload.ciphertext);
+        var key = await deriveKey(passwordInput.value, salt);
+        plain = new Uint8Array(await crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, key, encrypted));
+        var hash = await sha256Hex(plain);
+        if (plain.byteLength !== payload.original.size || hash !== payload.original.sha256) throw new Error("Integrity check failed");
+        status.textContent = "Verified. Opening protected website…";
+        var html = new TextDecoder("utf-8", { fatal: true }).decode(plain);
+        passwordInput.value = "";
+        salt.fill(0);
+        iv.fill(0);
+        encrypted.fill(0);
+        plain.fill(0);
+        await activateHtml(html);
+      } catch (error) {
+        if (salt) salt.fill(0);
+        if (iv) iv.fill(0);
+        if (encrypted) encrypted.fill(0);
+        if (plain) plain.fill(0);
+        fail("Incorrect password or damaged file.");
+      }
+    });
+  }());
+  <\/script>
+</body>
+</html>`;
+    }
+
+    function setStatus(message, tone) {
+      status.textContent = message;
+      status.dataset.tone = tone || "";
+      status.classList.toggle("is-visible", Boolean(message));
+    }
+
+    function clearDownload() {
+      if (downloadUrl) URL.revokeObjectURL(downloadUrl);
+      downloadUrl = "";
+      downloadLink.removeAttribute("href");
+      downloadPanel.classList.remove("is-visible");
+    }
+
+    function acceptFile(file) {
+      clearDownload();
+      const looksLikeHtml = file && (/\.html?$/i.test(file.name) || file.type === "text/html");
+      if (!looksLikeHtml) {
+        selectedFile = null;
+        fileInput.value = "";
+        fileSummary.classList.remove("is-visible");
+        setStatus("Please choose an .html or .htm file.", "error");
+        updatePreview();
+        return;
+      }
+      selectedFile = file;
+      fileName.textContent = file.name;
+      fileMeta.textContent = formatBytes(file.size) + " · ready for local encryption";
+      fileSummary.classList.add("is-visible");
+      setStatus("", "");
+      updatePreview();
+    }
+
+    fileInput.addEventListener("change", () => acceptFile(fileInput.files && fileInput.files[0]));
+
+    ["dragenter", "dragover"].forEach((name) => dropZone.addEventListener(name, (event) => {
+      event.preventDefault();
+      dropZone.classList.add("is-over");
+    }));
+
+    ["dragleave", "drop"].forEach((name) => dropZone.addEventListener(name, (event) => {
+      event.preventDefault();
+      dropZone.classList.remove("is-over");
+    }));
+
+    dropZone.addEventListener("drop", (event) => {
+      const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0];
+      if (file) acceptFile(file);
+    });
+
+    showPassword.addEventListener("change", () => {
+      const type = showPassword.checked ? "text" : "password";
+      passwordInput.type = type;
+      confirmInput.type = type;
+    });
+
+
+    [brandNameInput, lockedTitleInput].forEach((input) => input.addEventListener("input", updatePreview));
+    form.querySelectorAll('input[name="locked-icon"]').forEach((input) => input.addEventListener("change", updatePreview));
+    showFileSectionInput.addEventListener("change", updatePreview);
+
+    customLogoUrlInput.addEventListener("input", () => {
+      if (customLogoUrlInput.value.trim()) {
+        const customRadio = form.querySelector('input[name="locked-icon"][value="custom"]');
+        if (customRadio) customRadio.checked = true;
+      }
+      updatePreview();
+    });
+
+    resetButton.addEventListener("click", () => {
+      form.reset();
+      selectedFile = null;
+      fileSummary.classList.remove("is-visible");
+      progress.classList.remove("is-visible");
+      encryptButton.disabled = false;
+      clearDownload();
+      setStatus("", "");
+      updatePreview();
+      fileInput.focus();
+    });
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      clearDownload();
+
+      if (!window.crypto || !window.crypto.subtle) {
+        setStatus("Secure browser encryption is unavailable. Open this tool in a current browser or from HTTPS/localhost.", "error");
+        return;
+      }
+      if (!selectedFile) {
+        setStatus("Choose the HTML file you want to protect.", "error");
+        fileInput.focus();
+        return;
+      }
+      if (passwordInput.value.length < 12) {
+        setStatus("Use a password or passphrase of at least 12 characters.", "error");
+        passwordInput.focus();
+        return;
+      }
+      if (passwordInput.value !== confirmInput.value) {
+        setStatus("The two password entries do not match.", "error");
+        confirmInput.focus();
+        confirmInput.select();
+        return;
+      }
+
+      const selectedIcon = getSelectedIcon();
+      const normalizedLogoUrl = normalizeLogoUrl(customLogoUrlInput.value);
+      if (selectedIcon === "custom" && !customLogoUrlInput.value.trim()) {
+        setStatus("Enter a custom logo URL, or choose one of the built-in icons.", "error");
+        customLogoUrlInput.focus();
+        return;
+      }
+      if (selectedIcon === "custom" && normalizedLogoUrl === null) {
+        setStatus("Custom logo URL must use http://, https://, or a supported base64 data:image URL.", "error");
+        customLogoUrlInput.focus();
+        customLogoUrlInput.select();
+        return;
+      }
+      const branding = {
+        brandName: brandNameInput.value.trim() || "Local HTML Encryptor",
+        lockedTitle: lockedTitleInput.value.trim() || "Encrypted HTML file",
+        icon: selectedIcon,
+        customLogoUrl: selectedIcon === "custom" ? normalizedLogoUrl : "",
+        showFileSection: showFileSectionInput.checked
+      };
+
+      encryptButton.disabled = true;
+      resetButton.disabled = true;
+      progress.classList.add("is-visible");
+      setStatus("Reading the website and deriving the encryption key…", "working");
+
+      let plain;
+      let salt;
+      let iv;
+      let ciphertext;
+      let verified;
+      try {
+        plain = new Uint8Array(await selectedFile.arrayBuffer());
+        const originalHash = await sha256Hex(plain);
+        salt = crypto.getRandomValues(new Uint8Array(SALT_BYTES));
+        iv = crypto.getRandomValues(new Uint8Array(IV_BYTES));
+        const encryptionKey = await deriveKey(passwordInput.value, salt, ["encrypt"]);
+        setStatus("Encrypting the file with AES-256-GCM…", "working");
+        ciphertext = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, encryptionKey, plain));
+
+        setStatus("Running a local decrypt-and-hash verification…", "working");
+        const verificationKey = await deriveKey(confirmInput.value, salt, ["decrypt"]);
+        verified = new Uint8Array(await crypto.subtle.decrypt({ name: "AES-GCM", iv }, verificationKey, ciphertext));
+        const verifiedHash = await sha256Hex(verified);
+        if (verified.byteLength !== plain.byteLength || verifiedHash !== originalHash) throw new Error("Self-test integrity mismatch");
+
+        const payload = {
+          format: "local-html-encryptor-v2",
+          version: 2,
+          kdf: { name: "PBKDF2", hash: "SHA-256", iterations: ITERATIONS, salt: bytesToBase64(salt) },
+          cipher: { name: "AES-GCM", length: 256, iv: bytesToBase64(iv) },
+          original: { name: selectedFile.name, size: plain.byteLength, sha256: originalHash },
+          ciphertext: bytesToBase64(ciphertext)
+        };
+        const lockedHtml = createLockedHtml(payload, branding);
+        const baseName = selectedFile.name.replace(/\.html?$/i, "");
+        downloadUrl = URL.createObjectURL(new Blob([lockedHtml], { type: "text/html;charset=utf-8" }));
+        downloadLink.href = downloadUrl;
+        downloadLink.download = baseName + "_Locked.html";
+        downloadLink.textContent = "Download " + baseName + "_Locked.html";
+        downloadPanel.classList.add("is-visible");
+        setStatus("Encryption complete. The locked copy passed the local integrity test.", "success");
+        downloadPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      } catch (error) {
+        console.error("Local encryption failed without exposing file contents or the password.", error);
+        setStatus("The file could not be encrypted and verified. No output was created. Try again in a current browser.", "error");
+      } finally {
+        if (plain) plain.fill(0);
+        if (salt) salt.fill(0);
+        if (iv) iv.fill(0);
+        if (ciphertext) ciphertext.fill(0);
+        if (verified) verified.fill(0);
+        passwordInput.value = "";
+        confirmInput.value = "";
+        progress.classList.remove("is-visible");
+        encryptButton.disabled = false;
+        resetButton.disabled = false;
+      }
+    });
+
+    updatePreview();
+
+    if (!window.crypto || !window.crypto.subtle) {
+      encryptButton.disabled = true;
+      setStatus("Secure browser encryption is unavailable here. Open this tool in a current browser or from HTTPS/localhost.", "error");
+    }
+  })();
+  </script>
+</body>
+</html>
